@@ -1,0 +1,124 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.10.2
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+import numpy as np
+import random
+import matplotlib.pyplot as plt
+np.random.seed(0)
+```
+
+```{python}
+class Canvas:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.area = width * height
+        
+class Sml_rec:
+    def __init__(self, width, height, flip, bound, shape = None):
+        
+        self.f = flip
+        self.bound = bound
+        self.shape = shape
+        code = '{0:0rb}'.replace('r',f'{len(bin(bound.width))-2}')
+        
+        if flip:
+            self.width = width
+            self.height = height
+            self.area = width * height
+            self.p1 = np.random.randint(0, bound.height - self.height)
+            self.p2 = np.random.randint(0, bound.width - self.width)
+        else:
+            self.width = height
+            self.height = width
+            self.area = width * height
+            self.p1 = np.random.randint(0, bound.height - self.height)
+            self.p2 = np.random.randint(0, bound.width - self.width)
+            
+        self.dna = code.format(self.p1) + code.format(self.p2) + f'{self.f}'
+
+    
+        if self.shape is None:
+            a = np.zeros(bound.area).reshape(bound.height,bound.width)
+            a[self.p1:self.p1 + self.height, self.p2:self.p2 + self.width] = 1
+        
+        else:
+            a = np.zeros(bound.area).reshape(bound.height,bound.width)
+            a[self.p1:self.p1 + self.height, self.p2:self.p2 + self.width] = self.shape
+            
+        self.phenotype = a
+        
+    def xover(self,other):
+        par1 = self.dna
+        par2 = other.dna
+        position1 = np.random.randint(0, len(par1))
+        position2 = np.random.randint(0, len(par2))
+        
+        chd1_dna = par1[:position2] + par2[position1] +  par1[position2+1:]
+        chd2_dna = par2[:position1] + par1[position1] +  par2[position1+1:]
+        
+        chd1 = Sml_rec(int(chd1_dna[:8],2), int(chd1_dna[8:16],2), int(chd1_dna[-1],2), bound)
+        chd2 = Sml_rec(int(chd2_dna[:8],2), int(chd2_dna[8:16],2), int(chd2_dna[-1],2), bound)
+        return (chd1, chd2)
+    
+    def mutate(self):
+        position = np.random.randint(0, len(self.dna))
+        if self.dna[position] == '1':
+            self.dna = self.dna[:position] + '1' + self.dna[position+1:]
+        else:
+            self.dna = self.dna[:position] + '0' + self.dna[position+1:]
+```
+
+```{python}
+bound = Canvas(100,100)
+```
+
+```{python}
+A1 = np.ones(15*15).reshape(15,15)
+A1[4:11,4:11] = 0
+plt.imshow(A1)
+```
+
+```{python}
+A2 = np.ones(7*7).reshape(7,7)
+A2[2:5,2:5] = 0
+plt.imshow(A2)
+```
+
+```{python}
+bound = Canvas(50,30)
+G1 = Sml_rec(15,15,0,bound,shape=A1)
+G2 = Sml_rec(7,7,0,bound,shape=A2)
+G3 = Sml_rec(15,5,0,bound)
+G4 = Sml_rec(15,5,1,bound)
+G5 = Sml_rec(5,5,0,bound)
+G6 = Sml_rec(3,3,0,bound)
+```
+
+```{python}
+Ar = G1.phenotype + G2.phenotype + G3.phenotype + G4.phenotype + G5.phenotype + G6.phenotype
+```
+
+```{python}
+plt.imshow(Ar)
+```
+
+```{python}
+np.sum(Ar)
+```
+
+```{python}
+
+```
